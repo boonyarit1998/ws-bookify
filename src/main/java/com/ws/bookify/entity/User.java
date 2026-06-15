@@ -16,32 +16,29 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * Entity layer — แทน 1 แถวในตาราง "booklists".
+ * Entity layer — แทน 1 แถวในตาราง "users" (บัญชีผู้ใช้สำหรับ authentication).
+ * เก็บ password เป็น BCrypt hash เท่านั้น ไม่เก็บค่าดิบ.
  */
 @Entity
-@Table(name = "booklists")
+@Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
-public class Booklist {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // เจ้าของ list — set ตอนสร้าง, แก้ไม่ได้ (ดู V6 migration)
-    @Column(name = "user_id", nullable = false, updatable = false)
-    private Long userId;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-    @Column(columnDefinition = "text")
-    private String description;
-
-    @Column(name = "is_public", nullable = false)
-    private boolean isPublic = false;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

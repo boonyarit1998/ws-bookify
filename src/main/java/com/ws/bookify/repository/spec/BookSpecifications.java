@@ -16,6 +16,11 @@ public final class BookSpecifications {
     private BookSpecifications() {
     }
 
+    /** เฉพาะหนังสือของ user คนนี้ (scope ownership — ใส่เป็นเงื่อนไขแรกของ search) */
+    public static Specification<Book> hasUserId(Long userId) {
+        return (root, query, cb) -> cb.equal(root.get("userId"), userId);
+    }
+
     /** title มีคำว่า ... (ไม่สนตัวพิมพ์เล็ก-ใหญ่) */
     public static Specification<Book> titleContains(String title) {
         return (root, query, cb) ->

@@ -8,6 +8,7 @@ import com.ws.bookify.entity.ReadingStatus;
 import com.ws.bookify.exception.ResourceNotFoundException;
 import com.ws.bookify.repository.BookRepository;
 import com.ws.bookify.repository.ReadingRepository;
+import com.ws.bookify.util.SecurityUtils;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,15 @@ public class ReadingService {
      * ถ้ายังไม่มี reading ของหนังสือเล่มนี้ -> สร้างใหม่, ถ้ามีแล้ว -> อัปเดต.
      */
     public ReadingResponse upsert(Long bookId, ReadingRequest request) {
-        Book book = bookRepository.findById(bookId)
+        Long userId = SecurityUtils.currentUserId();
+        Book book = bookRepository.findByIdAndUserId(bookId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", bookId));
 
-        Reading reading = readingRepository.findByBookId(bookId)
+        Reading reading = readingRepository.findByBookIdAndUserId(bookId, userId)
                 .orElseGet(() -> {
                     Reading r = new Reading();
                     r.setBook(book);
+                    r.setUserId(userId);
                     return r;
                 });
 
@@ -59,14 +62,14 @@ public class ReadingService {
     /** ดูสถานะการอ่านของหนังสือ */
     @Transactional(readOnly = true)
     public ReadingResponse get(Long bookId) {
-        Reading reading = readingRepository.findByBookId(bookId)
+        Reading reading = readingRepository.findByBookIdAndUserId(bookId, SecurityUtils.currentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Reading for book", bookId));
         return ReadingResponse.from(reading);
     }
 
     /** ลบสถานะการอ่านของหนังสือ */
     public void delete(Long bookId) {
-        Reading reading = readingRepository.findByBookId(bookId)
+        Reading reading = readingRepository.findByBookIdAndUserId(bookId, SecurityUtils.currentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Reading for book", bookId));
         readingRepository.delete(reading);
     }

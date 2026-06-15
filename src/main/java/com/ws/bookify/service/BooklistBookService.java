@@ -10,6 +10,7 @@ import com.ws.bookify.exception.ResourceNotFoundException;
 import com.ws.bookify.repository.BookRepository;
 import com.ws.bookify.repository.BooklistBookRepository;
 import com.ws.bookify.repository.BooklistRepository;
+import com.ws.bookify.util.SecurityUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,11 +31,12 @@ public class BooklistBookService {
     private final BooklistRepository booklistRepository;
     private final BookRepository bookRepository;
 
-    /** เพิ่มหนังสือเข้า booklist */
+    /** เพิ่มหนังสือเข้า booklist (ทั้ง list และหนังสือต้องเป็นของ user คนนี้) */
     public BooklistBookResponse addBook(Long booklistId, AddBookToListRequest request) {
-        Booklist booklist = booklistRepository.findById(booklistId)
+        Long userId = SecurityUtils.currentUserId();
+        Booklist booklist = booklistRepository.findByIdAndUserId(booklistId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booklist", booklistId));
-        Book book = bookRepository.findById(request.bookId())
+        Book book = bookRepository.findByIdAndUserId(request.bookId(), userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", request.bookId()));
 
         if (booklistBookRepository.existsByBooklistIdAndBookId(booklistId, request.bookId())) {
@@ -53,22 +55,28 @@ public class BooklistBookService {
         return BooklistBookResponse.from(booklistBookRepository.save(entry));
     }
 
-    /** ดูหนังสือทั้งหมดใน booklist (เรียงตามลำดับ) */
+    /** ดูหนังสือทั้งหมดใน booklist (เรียงตามลำดับ) — เฉพาะ list ของ user คนนี้ */
     @Transactional(readOnly = true)
     public List<BooklistBookResponse> getBooks(Long booklistId) {
-        if (!booklistRepository.existsById(booklistId)) {
-            throw new ResourceNotFoundException("Booklist", booklistId);
-        }
+        requireOwnedBooklist(booklistId);
         return booklistBookRepository.findByBooklistIdOrderByPositionAscIdAsc(booklistId).stream()
                 .map(BooklistBookResponse::from)
                 .toList();
     }
 
-    /** ลบหนังสือออกจาก booklist */
+    /** ลบหนังสือออกจาก booklist — เฉพาะ list ของ user คนนี้ */
     public void removeBook(Long booklistId, Long bookId) {
+        requireOwnedBooklist(booklistId);
         BooklistBook entry = booklistBookRepository.findByBooklistIdAndBookId(booklistId, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Book " + bookId + " in booklist", booklistId));
         booklistBookRepository.delete(entry);
+    }
+
+    /** ตรวจว่า booklist นี้เป็นของ user ปัจจุบัน ไม่งั้น 404 */
+    private void requireOwnedBooklist(Long booklistId) {
+        if (!booklistRepository.existsByIdAndUserId(booklistId, SecurityUtils.currentUserId())) {
+            throw new ResourceNotFoundException("Booklist", booklistId);
+        }
     }
 }

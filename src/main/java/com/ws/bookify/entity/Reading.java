@@ -36,6 +36,10 @@ public class Reading {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // เจ้าของ reading — เท่ากับเจ้าของ book เสมอ (ดู V6 migration)
+    @Column(name = "user_id", nullable = false, updatable = false)
+    private Long userId;
+
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", unique = true)
     private Book book;

@@ -5,6 +5,7 @@ import com.ws.bookify.dto.BooklistResponse;
 import com.ws.bookify.entity.Booklist;
 import com.ws.bookify.exception.ResourceNotFoundException;
 import com.ws.bookify.repository.BooklistRepository;
+import com.ws.bookify.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,13 +21,15 @@ public class BooklistService {
 
     public BooklistResponse create(BooklistRequest request) {
         Booklist booklist = new Booklist();
+        booklist.setUserId(SecurityUtils.currentUserId());
         applyRequest(booklist, request);
         return BooklistResponse.from(booklistRepository.save(booklist));
     }
 
     @Transactional(readOnly = true)
     public Page<BooklistResponse> findAll(Pageable pageable) {
-        return booklistRepository.findAll(pageable).map(BooklistResponse::from);
+        return booklistRepository.findByUserId(SecurityUtils.currentUserId(), pageable)
+                .map(BooklistResponse::from);
     }
 
     @Transactional(readOnly = true)
@@ -41,14 +44,15 @@ public class BooklistService {
     }
 
     public void delete(Long id) {
-        if (!booklistRepository.existsById(id)) {
+        if (!booklistRepository.existsByIdAndUserId(id, SecurityUtils.currentUserId())) {
             throw new ResourceNotFoundException("Booklist", id);
         }
         booklistRepository.deleteById(id);
     }
 
+    /** ดึง list ของ user ปัจจุบัน หรือ 404 ถ้าไม่เจอ/ไม่ใช่ของเรา */
     private Booklist getOrThrow(Long id) {
-        return booklistRepository.findById(id)
+        return booklistRepository.findByIdAndUserId(id, SecurityUtils.currentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booklist", id));
     }
 
