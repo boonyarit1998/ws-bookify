@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ยกเลิก run เก่าของ branch/PR เดียวกันเมื่อมี push ใหม่ ประหยัด CI minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    # Docker มีอยู่แล้วบน ubuntu runner -> Testcontainers (postgres) รันได้เลย
+    env:
+      # การ test สร้าง DB จริงผ่าน Testcontainers อยู่แล้ว แต่ context ต้องมี JWT secret ตอน startup
+      JWT_SECRET: ci-test-secret-not-used-in-prod-0123456789abcdef
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build & test
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Upload test reports
+        if: always() # อัปโหลดแม้ test fail เพื่อเอาไว้ดูสาเหตุ
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          if-no-files-found: ignore
