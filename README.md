@@ -38,17 +38,29 @@ The project was built to demonstrate a clean, layered Spring Boot architecture b
 
 ## Project Structure
 
+The codebase is organized into classic **layers** — each layer has a single responsibility and depends only on the layer beneath it.
+
 ```
-src/main/java/com/yourname/bookify/
-├── config/        # security, CORS, beans
-├── auth/          # JWT validation
-├── book/          # controller, service, repository, entity, dto
-├── booklist/
-└── reading/
+src/main/java/com/ws/bookify/
+├── config/        # security, CORS, bean configuration
+├── controller/    # REST endpoints — handle HTTP requests/responses
+├── service/       # business logic — orchestrates use cases
+├── repository/    # data access — Spring Data JPA interfaces
+├── entity/        # JPA entities — database table mappings
+├── dto/           # request/response data transfer objects
+└── exception/     # custom exceptions & global handler
 src/main/resources/
 ├── db/migration/  # Flyway scripts (V1__init.sql ...)
-└── application.yml
+└── application.properties
 ```
+
+**Request flow:** `Controller → Service → Repository → Database`
+
+| Layer        | Responsibility                                                        |
+|--------------|-----------------------------------------------------------------------|
+| Controller   | Expose REST endpoints, validate input, map to/from DTOs               |
+| Service      | Hold business rules and transactions; coordinate repositories         |
+| Repository   | Persist and query entities via Spring Data JPA                        |
 
 ---
 
