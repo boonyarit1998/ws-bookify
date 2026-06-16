@@ -129,6 +129,18 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Tests provide their own JWT secret so the Spring context loads
+					     without depending on a real JWT_SECRET env var (prod reads it from env).
+					     Set directly as app.jwt.secret to bypass the ${JWT_SECRET} indirection. -->
+					<systemPropertyVariables>
+						<app.jwt.secret>test-only-secret-not-used-in-production-0123456789abcdef</app.jwt.secret>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>

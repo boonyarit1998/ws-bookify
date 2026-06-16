@@ -15,10 +15,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     # Docker มีอยู่แล้วบน ubuntu runner -> Testcontainers (postgres) รันได้เลย
-    env:
-      # การ test สร้าง DB จริงผ่าน Testcontainers อยู่แล้ว แต่ context ต้องมี JWT secret ตอน startup
-      JWT_SECRET: ci-test-secret-not-used-in-prod-0123456789abcdef
-
+    # JWT secret สำหรับเทสถูก set ผ่าน maven-surefire-plugin ใน pom.xml ไม่ต้องพึ่ง env ตรงนี้
     steps:
       - name: Checkout
         uses: actions/checkout@v4
