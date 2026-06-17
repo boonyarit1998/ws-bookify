@@ -45,3 +45,55 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports/
           if-no-files-found: ignore
+
+  # ---- Build & push Docker image ไป GHCR (เฉพาะตอน push เข้า main เท่านั้น) ----
+  build-push-image:
+    needs: build-test # รันต่อเมื่อ test ผ่านเท่านั้น -> ไม่ deploy ของพัง
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # ต้องมีเพื่อ push image ขึ้น GHCR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # token ในตัว ไม่ต้องสร้างเอง
+
+      - name: Derive image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # metadata-action แปลงชื่อ repo เป็น lowercase ให้อัตโนมัติ (GHCR บังคับ lowercase)
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # cache layer ผ่าน GitHub Actions cache -> build รอบหลังเร็วขึ้นมาก
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---- สั่ง Render ให้ pull image ใหม่แล้ว deploy ----
+  deploy:
+    needs: build-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        # Render จะ pull image :latest จาก GHCR แล้ว deploy ใหม่
+        run: curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

@@ -1,0 +1,22 @@
+# กัน secret หลุดเข้า image เด็ดขาด
+.env
+.env.*
+!.env.example
+
+# build output (จะ build ใหม่ใน image อยู่แล้ว) -> image เล็กลง + build เร็วขึ้น
+target/
+
+# git / CI / editor — ไม่จำเป็นต่อ runtime
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+*.iml
+
+# docs
+HELP.md
+README.md
+
+# Maven wrapper jar (ถูก ignore ใน git อยู่แล้ว; wrapper จะ download เองตอน build)
+.mvn/wrapper/maven-wrapper.jar
