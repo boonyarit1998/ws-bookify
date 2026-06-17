@@ -29,6 +29,14 @@ jobs:
 
       - name: Build & test
         run: ./mvnw --batch-mode --no-transfer-progress verify
+        env:
+          # ค่าไม่ลับ -> เก็บเป็น Repository Variable (vars) แก้ได้ใน UI
+          JWT_EXPIRATION: ${{ vars.JWT_EXPIRATION }}
+          # ค่าลับ -> เก็บเป็น Repository Secret (secrets) ไม่โผล่ใน log
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Upload test reports
         if: always() # อัปโหลดแม้ test fail เพื่อเอาไว้ดูสาเหตุ
