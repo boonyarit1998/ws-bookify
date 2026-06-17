@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.ws</groupId>
 	<artifactId>bookify</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<version>0.0.1</version>
+	<name>bookify</name>
+	<description>Reading tracker and booklist REST API</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -156,6 +156,15 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<!-- สร้าง META-INF/build-info.properties (ชื่อ/เวอร์ชัน/เวลา build)
+					     -> ทำให้ Spring มี BuildProperties bean ให้ /api/version อ่านได้ -->
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

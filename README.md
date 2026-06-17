@@ -74,6 +74,7 @@ All endpoints return a consistent envelope: `{ success, message, data, errors, p
 | `DELETE` | `/api/booklists/{id}/books/{bookId}` | ✅ | Remove a book from a booklist |
 | `PUT`/`GET`/`DELETE` | `/api/books/{bookId}/reading` | ✅ | Set / get / clear reading status |
 | `GET`  | `/api/stats/reading` | ✅ | Reading statistics |
+| `GET`  | `/api/version` | — | App name, version & build time |
 | `GET`  | `/actuator/health` | — | Health check |
 
 ### Quick example

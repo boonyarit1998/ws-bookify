@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         // health check ต้องเปิด public ให้ Render เรียกได้โดยไม่ต้องมี token
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // version เปิด public ให้เช็คได้ว่า deploy เวอร์ชันไหนอยู่
+                        .requestMatchers("/api/version").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
                 .exceptionHandling(ex -> ex
